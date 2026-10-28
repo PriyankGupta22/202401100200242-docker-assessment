@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FestPass Registration</title>
+</head>
+<body>
+    <h1>FestPass Registration</h1>
+    <p>Registration Number: 202401100200242</p>
+
+    <form id="form">
+        <input id="name" placeholder="Your name" required>
+        <input id="email" type="email" placeholder="Your email" required>
+        <button type="submit">Register</button>
+    </form>
+
+    <h2>Registrations</h2>
+    <ul id="list"></ul>
+    <p id="status"></p>
+
+    <script>
+        async function refresh() {
+            try {
+                const response = await fetch("/api/registrations");
+                const registrations = await response.json();
+
+                document.getElementById("list").replaceChildren(
+                    ...registrations.map(r => {
+                        const li = document.createElement("li");
+                        li.textContent = `#${r.id} ${r.name} (${r.email})`;
+                        return li;
+                    })
+                );
+
+                document.getElementById("status").textContent =
+                    "Backend connected";
+            } catch {
+                document.getElementById("status").textContent =
+                    "Backend not reachable";
+            }
+        }
+
+        document.getElementById("form").addEventListener("submit", async e => {
+            e.preventDefault();
+
+            const response = await fetch("/api/registrations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: document.getElementById("name").value,
+                    email: document.getElementById("email").value
+                })
+            });
+
+            if (response.ok) {
+                document.getElementById("form").reset();
+                refresh();
+            } else {
+                document.getElementById("status").textContent =
+                    "Registration failed";
+            }
+        });
+
+        refresh();
+    </script>
+</body>
+</html>
